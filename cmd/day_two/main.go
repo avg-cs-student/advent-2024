@@ -47,7 +47,7 @@ func solvePartOne(lines []string) int {
 		}
 
 		var cmp func(a, b int) bool
-		if levels[0] - levels[1] > 0 {
+		if levels[0]-levels[1] > 0 {
 			cmp = func(a, b int) bool {
 				diff := a - b
 				if diff < 0 {
@@ -75,7 +75,7 @@ func isSafe(levels []int, cmp func(a, b int) bool, tolerance int) bool {
 	var check func([]int, int) bool
 	check = func(levels []int, bad int) bool {
 		for i := 1; i < len(levels); i++ {
-			if cmp(levels[i - 1], levels[i]) {
+			if cmp(levels[i-1], levels[i]) {
 				continue
 			}
 
@@ -88,13 +88,13 @@ func isSafe(levels []int, cmp func(a, b int) bool, tolerance int) bool {
 				continue
 			}
 
-			if i < len(levels) - 1 {
-				if cmp(levels[i - 1], levels[i + 1]) {
+			if i < len(levels)-1 {
+				if cmp(levels[i-1], levels[i+1]) {
 					i++
 					continue
 				}
 				if i > 1 {
-					if cmp(levels[i - 2], levels[i + 1]) {
+					if cmp(levels[i-2], levels[i+1]) {
 						i++
 						continue
 					}
