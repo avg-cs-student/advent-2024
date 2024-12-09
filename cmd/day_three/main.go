@@ -78,53 +78,76 @@ func solvePartTwo(contents []string) *big.Int {
 	numRegex := regexp.MustCompile(`\d+`)
 
 	sumTotal := big.NewInt(0)
-	okayUntil := math.MaxInt
-	okayAfter := 0
+	okToParse := true
 	for _, line := range contents {
 		mulMatches := mulRegex.FindAllIndex([]byte(line), -1)
 		doMatches := doRegex.FindAllIndex([]byte(line), -1)
 		dontMatches := dontRegex.FindAllIndex([]byte(line), -1)
 
-		if len(dontMatches) > 0 {
-			okayUntil = dontMatches[0][0]
-		}
+		fmt.Printf("do(): %v\n", doMatches)
+		fmt.Printf("dont(): %v\n", dontMatches)
+		fmt.Printf("mul(): %v\n", mulMatches)
+
+		nextDoStartIndex, nextDontStartIndex := math.MaxInt, math.MaxInt
+		doSliceIndex, dontSliceIndex := 0, 0
 		if len(doMatches) > 0 {
-			okayAfter = doMatches[0][0]
+			nextDoStartIndex = doMatches[doSliceIndex][0]
 		}
 
-		for mul, do, dont := 0, 0, 0; mul < len(mulMatches); mul++ {
-			start, stop := mulMatches[mul][0], mulMatches[mul][1]
-			if start > okayUntil && start < okayAfter {
+		if len(dontMatches) > 0 {
+			nextDontStartIndex = dontMatches[dontSliceIndex][0]
+		}
+
+		for i := 0; i < len(mulMatches); i++ {
+			mulStartIndex, mulStopIndex := mulMatches[i][0], mulMatches[i][1]
+
+			fmt.Printf("Next do(): %d\n", nextDoStartIndex)
+			fmt.Printf("Next dont(): %d\n", nextDontStartIndex)
+			fmt.Printf("mul start: %d\n", mulStartIndex)
+
+			if !okToParse && mulStartIndex < nextDoStartIndex {
 				continue
-			} 
-
-			if start < okayUntil && okayUntil > okayAfter {
-				do++
-				if len(doMatches) > do {
-					okayAfter = doMatches[do][0]
-				} else {
-					okayAfter = math.MaxInt
-				}
-			} else if start > okayAfter && okayAfter > okayUntil {
-				dont++
-				if len(dontMatches) > dont {
-					okayUntil = dontMatches[dont][0]
-				} else {
-					okayUntil = math.MaxInt
-				}
 			}
 
-			m := line[start:stop]
-			numbers := numRegex.FindAllString(m, -1)
-			a, err := strconv.Atoi(numbers[0])
-			if err != nil {
-				panic(err)
+			if okToParse && mulStartIndex > nextDontStartIndex {
+				dontSliceIndex++
+				if len(dontMatches) > dontSliceIndex {
+					nextDontStartIndex = dontMatches[dontSliceIndex][0]
+				} else {
+					nextDontStartIndex = math.MaxInt
+				}
+				fmt.Println("dont++")
+				fmt.Printf("Next dont(): %d\n", nextDontStartIndex)
+				okToParse = false
+				continue
 			}
-			b, err := strconv.Atoi(numbers[1])
-			if err != nil {
-				panic(err)
+
+			if !okToParse && mulStartIndex > nextDoStartIndex {
+				doSliceIndex++
+				if len(doMatches) > doSliceIndex {
+					nextDoStartIndex = doMatches[doSliceIndex][0]
+				} else {
+					nextDoStartIndex = math.MaxInt
+				}
+				okToParse = true
+				fmt.Println("do++")
+				fmt.Printf("Next do(): %d\n", nextDoStartIndex)
 			}
-			sumTotal.Add(sumTotal, opFn(a, b))
+
+			if okToParse && mulStartIndex < nextDontStartIndex {
+				m := line[mulStartIndex:mulStopIndex]
+				fmt.Printf("Ok to parse [%d]: %s\n", mulStartIndex, m)
+				numbers := numRegex.FindAllString(m, -1)
+				a, err := strconv.Atoi(numbers[0])
+				if err != nil {
+					panic(err)
+				}
+				b, err := strconv.Atoi(numbers[1])
+				if err != nil {
+					panic(err)
+				}
+				sumTotal.Add(sumTotal, opFn(a, b))
+			}
 		}
 	}
 
