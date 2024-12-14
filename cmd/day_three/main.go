@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math"
+	// "math"
 	"math/big"
 	"os"
 	"regexp"
@@ -23,7 +23,7 @@ func main() {
 	fileContents := strings.Fields(string(dat))
 
 	solutionOne := solvePartOne(fileContents)
-	solutionTwo := solvePartTwo(fileContents)
+	solutionTwo := solvePartTwo(string(dat))
 
 	fmt.Printf("part one: %d\n", solutionOne)
 	fmt.Printf("part two: %d\n", solutionTwo)
@@ -62,7 +62,8 @@ func solvePartOne(contents []string) *big.Int {
 	return sumTotal
 }
 
-func solvePartTwo(contents []string) *big.Int {
+func solvePartTwo(contents string) *big.Int {
+	fmt.Printf("Contents: %v\n", contents)
 	maxParamVal := 999
 	opName := "mul"
 	opFn := func(a, b int) *big.Int {
@@ -72,84 +73,33 @@ func solvePartTwo(contents []string) *big.Int {
 		return big.NewInt(int64(a * b))
 	}
 
-	doRegex := regexp.MustCompile(`do\(\)`)
-	dontRegex := regexp.MustCompile(`don't\(\)`)
 	mulRegex := regexp.MustCompile(opName + `\(\d+,\d+\)`)
 	numRegex := regexp.MustCompile(`\d+`)
 
+	deleteAfterLastDontRegex := regexp.MustCompile(`((\n|.)*)don't\(\)(\n|.)*`)
+	endTrimmed := deleteAfterLastDontRegex.FindAllStringSubmatch(contents, -1)
+	fmt.Printf("end trimmed: %v\n", endTrimmed)
+	removeSectionsBetweenDontDoRegex := regexp.MustCompile(`(.*)don't\(\).*do\(\)(.*)`)
+	allTrimmed := removeSectionsBetweenDontDoRegex.FindAllStringSubmatch(endTrimmed[0][1], -1)
+	fmt.Println()
+	fmt.Printf("all trimmed: %v\n", allTrimmed[0][1:])
+
 	sumTotal := big.NewInt(0)
-	okToParse := true
-	for _, line := range contents {
-		mulMatches := mulRegex.FindAllIndex([]byte(line), -1)
-		doMatches := doRegex.FindAllIndex([]byte(line), -1)
-		dontMatches := dontRegex.FindAllIndex([]byte(line), -1)
-
-		fmt.Printf("do(): %v\n", doMatches)
-		fmt.Printf("dont(): %v\n", dontMatches)
-		fmt.Printf("mul(): %v\n", mulMatches)
-
-		nextDoStartIndex, nextDontStartIndex := math.MaxInt, math.MaxInt
-		doSliceIndex, dontSliceIndex := 0, 0
-		if len(doMatches) > 0 {
-			nextDoStartIndex = doMatches[doSliceIndex][0]
-		}
-
-		if len(dontMatches) > 0 {
-			nextDontStartIndex = dontMatches[dontSliceIndex][0]
-		}
-
-		for i := 0; i < len(mulMatches); i++ {
-			mulStartIndex, mulStopIndex := mulMatches[i][0], mulMatches[i][1]
-
-			fmt.Printf("Next do(): %d\n", nextDoStartIndex)
-			fmt.Printf("Next dont(): %d\n", nextDontStartIndex)
-			fmt.Printf("mul start: %d\n", mulStartIndex)
-
-			if !okToParse && mulStartIndex < nextDoStartIndex {
-				continue
+	for _, tuple := range allTrimmed {
+		line := tuple[1]
+		mulMatches := mulRegex.FindAllString(line, -1)
+		for _, m := range mulMatches {
+			numbers := numRegex.FindAllString(m, -1)
+			a, err := strconv.Atoi(numbers[0])
+			if err != nil {
+				panic(err)
 			}
-
-			if okToParse && mulStartIndex > nextDontStartIndex {
-				dontSliceIndex++
-				if len(dontMatches) > dontSliceIndex {
-					nextDontStartIndex = dontMatches[dontSliceIndex][0]
-				} else {
-					nextDontStartIndex = math.MaxInt
-				}
-				fmt.Println("dont++")
-				fmt.Printf("Next dont(): %d\n", nextDontStartIndex)
-				okToParse = false
-				continue
+			b, err := strconv.Atoi(numbers[1])
+			if err != nil {
+				panic(err)
 			}
-
-			if !okToParse && mulStartIndex > nextDoStartIndex {
-				doSliceIndex++
-				if len(doMatches) > doSliceIndex {
-					nextDoStartIndex = doMatches[doSliceIndex][0]
-				} else {
-					nextDoStartIndex = math.MaxInt
-				}
-				okToParse = true
-				fmt.Println("do++")
-				fmt.Printf("Next do(): %d\n", nextDoStartIndex)
-			}
-
-			if okToParse && mulStartIndex < nextDontStartIndex {
-				m := line[mulStartIndex:mulStopIndex]
-				fmt.Printf("Ok to parse [%d]: %s\n", mulStartIndex, m)
-				numbers := numRegex.FindAllString(m, -1)
-				a, err := strconv.Atoi(numbers[0])
-				if err != nil {
-					panic(err)
-				}
-				b, err := strconv.Atoi(numbers[1])
-				if err != nil {
-					panic(err)
-				}
-				sumTotal.Add(sumTotal, opFn(a, b))
-			}
+			sumTotal.Add(sumTotal, opFn(a, b))
 		}
 	}
-
 	return sumTotal
 }
