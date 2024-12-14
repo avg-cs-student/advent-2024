@@ -18,12 +18,19 @@ func main() {
 
     solutionOne := solvePartOne(rawContents)
     fmt.Printf("Part one: %d\n", solutionOne)
+
+    solutionTwo := solvePartTwo(rawContents)
+    fmt.Printf("Part one: %d\n", solutionTwo)
 }
 
 func solvePartOne(rawContents []byte) int {
     matrix := createRuneMatrix(rawContents)
-    displayMatrix(matrix)
     return check(matrix)
+}
+
+func solvePartTwo(rawContents []byte) int {
+    matrix := createRuneMatrix(rawContents)
+    return check2(matrix)
 }
 
 func createRuneMatrix(data []byte) [][]rune {
@@ -92,6 +99,75 @@ func check(matrix [][]rune) int {
             total += traverse(i, j, 0, reverse)
             total += traverse(i, j, 0, up)
             total += traverse(i, j, 0, down)
+        }
+    }
+
+    return total
+}
+
+func check2(matrix [][]rune) int {
+    total := 0
+
+    checkMas := func(row, col int) int {
+        sCount, mCount := 0, 0
+        var side string
+        if matrix[row - 1][col - 1] == 'S' {
+            sCount++
+            side = "top-left"
+        }
+
+        if matrix[row - 1][col + 1] == 'S' {
+            sCount++
+            side = "top-right"
+        }
+
+        if matrix[row + 1][col + 1] == 'S' {
+            sCount++
+            if side == "top-left" {
+                return 0
+            }
+        }
+
+        if matrix[row + 1][col - 1] == 'S' {
+            sCount++
+            if side == "top-right" {
+                return 0
+            }
+        }
+
+        if sCount != 2 {
+            return 0
+        }
+
+        if matrix[row - 1][col - 1] == 'M' {
+            mCount++
+        }
+
+        if matrix[row - 1][col + 1] == 'M' {
+            mCount++
+        }
+
+        if matrix[row + 1][col + 1] == 'M' {
+            mCount++
+        }
+
+        if matrix[row + 1][col - 1] == 'M' {
+            mCount++
+        }
+
+        if mCount != 2 {
+            return 0
+        }
+
+        return 1
+    }
+
+    for i := 1; i < len(matrix) - 1; i++ {
+        for j := 1; j < len(matrix) - 1; j++ {
+            if matrix[i][j] != 'A' {
+                continue
+            }
+            total += checkMas(i, j)
         }
     }
 
