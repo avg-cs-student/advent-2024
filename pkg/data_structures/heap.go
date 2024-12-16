@@ -20,9 +20,9 @@ func NewHeap[T any](f func(T, T) int) *Heap[T] {
 
 func NewHeapFromSlice[T any](f func(T, T) int, slice []T) *Heap[T] {
 	h := NewHeap(f)
-    for i := range slice {
-        h.Insert(slice[i])
-    }
+	for i := range slice {
+		h.Insert(slice[i])
+	}
 	return h
 }
 
