@@ -123,11 +123,11 @@ func findGuard(matrix [][]rune) (*position, int, error) {
 
 func solvePartTwo(matrix [][]rune) int {
 	// TODO: debug only
-    debugView := make([][]rune, len(matrix))
-    for i := range debugView {
-        debugView[i] = make([]rune, len(matrix[i]))
-        copy(debugView[i], matrix[i])
-    }
+	debugView := make([][]rune, len(matrix))
+	for i := range debugView {
+		debugView[i] = make([]rune, len(matrix[i]))
+		copy(debugView[i], matrix[i])
+	}
 
 	maxRow, maxCol := len(matrix), len(matrix[0])
 
@@ -150,7 +150,6 @@ func solvePartTwo(matrix [][]rune) int {
 		if !isOnTheMap(nextPos) {
 			break
 		}
-
 
 		for getRune(matrix, nextPos) == '#' {
 			facingIndex = (facingIndex + 1) % len(guardRunes)
@@ -191,8 +190,8 @@ func solvePartTwo(matrix [][]rune) int {
 			if rowContains(matrix, '>', curPos.col, maxCol, curPos.row) >= 0 {
 				uniq++
 			}
-			revDirIndex := colContains(matrix, 'v', curPos.row + 1, maxRow, curPos.col)
-			blockerIndex := colContains(matrix, '#', curPos.row + 1, maxRow, curPos.col)
+			revDirIndex := colContains(matrix, 'v', curPos.row+1, maxRow, curPos.col)
+			blockerIndex := colContains(matrix, '#', curPos.row+1, maxRow, curPos.col)
 			if blockerIndex >= 0 && revDirIndex >= 0 && revDirIndex < blockerIndex {
 				uniq++
 			}
@@ -225,8 +224,7 @@ func solvePartTwo(matrix [][]rune) int {
 			}
 		}
 
-
-		curPos = &position{ row: nextPos.row, col: nextPos.col }
+		curPos = &position{row: nextPos.row, col: nextPos.col}
 	}
 
 	fmt.Println()
@@ -237,4 +235,3 @@ func solvePartTwo(matrix [][]rune) int {
 func getRune(m [][]rune, p *position) rune {
 	return m[p.row][p.col]
 }
-
